@@ -37,8 +37,10 @@ class OpNetwork(nn.Module):
         assert len(self.sampling_factors)==len(operators), "Operators don't match sampling factors"
         self.oper = nn.Sequential()
         for i in range(len(self.tier_sizes)):
-            if i==0: self.oper.add_module(str(i),OpTier(self.in_channels,self.tier_sizes[i],self.kernel_sizes[i],operators[i],self.sampling_factors[i],self.OPLIB,self.pad,self.optimize,i))
-            else: self.oper.add_module(str(i),OpTier(self.tier_sizes[i-1],self.tier_sizes[i],self.kernel_sizes[i],operators[i],self.sampling_factors[i],self.OPLIB,self.pad,self.optimize,i))
+            if i==0: self.oper.add_module(str(i),OpTier(self.in_channels,self.tier_sizes[i],self.kernel_sizes[i],operators[i],self.OPLIB,self.pad,self.sampling_factors[i],i,self.optimize))
+                
+                #in_channels,out_channels,kernel_size,operators,OPLIB,padding=-1,sampling_factor=1,layer_idx=-1,optimize=True
+            else: self.oper.add_module(str(i),OpTier(self.tier_sizes[i-1],self.tier_sizes[i],self.kernel_sizes[i],operators[i],self.OPLIB,self.pad,self.sampling_factors[i],i,self.optimize))
         self.operators = operators
 
     def dump_architecture(self):
