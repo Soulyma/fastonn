@@ -1,4 +1,4 @@
-from fastonn import OpNetwork,utils,OpTier,OpBlock,Trainer,SelfONNLayer
+from fastonn import OpNetwork,utils,OpTier,OpBlock,Trainer,SelfONN
 from fastonn.osl import *
 import numpy as np
 import torch
@@ -34,23 +34,23 @@ def test_OpNetwork():
     except:
         raise
 
-def test_SelfONNLayer():
+def test_SelfONN2d():
     try:
         
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         torch.manual_seed(0)
         inputt = torch.randn(4,1,60,60).to(device)
         model = torch.nn.Sequential(
-            SelfONNLayer(1,16,21,padding=0,q=3),
+            SelfONN.SelfONN2d(1,16,21,padding=0,q=3),
             torch.nn.Tanh(),
-            SelfONNLayer(16,16,21,padding=0,q=3),
+            SelfONN.SelfONN2d(16,16,21,padding=0,q=3),
             torch.nn.Tanh(),
-            SelfONNLayer(16,1,20,padding=0,q=3),
+            SelfONN.SelfONN2d(16,1,20,padding=0,q=3),
             torch.nn.Tanh()
         ).to(device)
         output = model(inputt)
         assert output.shape == torch.Size([4, 1, 1, 1])
-        assert torch.all(((output.cpu().flatten().data)*1000).round() == torch.tensor([ 153., -459., -108., -569.])).item()
+        assert torch.all(((output.cpu().flatten().data)*1000).round() == torch.tensor([ -904., -994., 165., -818.])).item()
     except:
         raise
 
@@ -77,7 +77,7 @@ def test_trainer():
 
 
 if __name__ == "__main__":
-    test_SelfONNLayer()
+    test_SelfONN2d()
     test_OpNetwork()
     test_trainer()
     
