@@ -41,7 +41,8 @@ class Trainer:
         else: 
             self.reset_fn = reset_fn
         self.optim = optim
-        self.optimizer = self.optim(model.parameters(),lr=lr)
+        self.optimizer,_ = get_optimizer(self.model,self.optim,lr=lr)#Added the get optimizer function to convert it from string to a PyTorch object
+
         self.lr = lr
         self.verbose = verbose
 
