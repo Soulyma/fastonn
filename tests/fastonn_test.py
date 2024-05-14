@@ -1,5 +1,6 @@
 from fastonn import OpNetwork,utils,OpTier,OpBlock,Trainer,SelfONN
 from fastonn.osl import *
+# from fastonn.utils.adam import Adam
 import numpy as np
 import torch
 
@@ -70,7 +71,9 @@ def test_trainer():
         test_dl = torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False) 
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         optim_name = np.random.choice(['cgd','vanilla_adam','adamfast','sgd_momentum','sgd'])
-        trainer = Trainer(model,train_dl,val_dl,test_dl,torch.nn.MSELoss(),optim_name,1e-3,{'snr':(utils.calc_snr,'max')},device,model.reset_parameters,"test")
+        trainer = Trainer(model,train_dl,val_dl,test_dl,torch.nn.MSELoss(),
+                          optim_name,1e-3,{'snr':(utils.calc_snr,'max')},device,
+                          [],"test")
         trainer.train(num_epochs=5,num_runs=3)
     except:
         raise
