@@ -22,7 +22,7 @@ setup(name='fastonn',
       python_requires='>=3.4',
       install_requires=[
                       'numpy >= 1.13',
-                      'torch >= 1.3.0',
+                      'torch >= 1.8.0',
                       'torchvision >= 0.4.0',
                       'scipy >= 1.3.0',
                       'matplotlib >= 3.1.0',
