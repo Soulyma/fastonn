@@ -220,7 +220,7 @@ class Trainer:
             self.r = r
             self.model.apply(self.reset_fn)
             self.model.to(self.device)
-            self.optimizer = self.optim(self.model.parameters(),lr=self.lr) #get_optimizer(self.model,self.opt_name,self.lr)
+            # self.optimizer = self.optim(self.model.parameters(),lr=self.lr) #get_optimizer(self.model,self.opt_name,self.lr)
             
             epochs = range(num_epochs)
             if self.verbose>1: epochs = tqdm(epochs,desc='Epoch')
