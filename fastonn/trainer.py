@@ -121,7 +121,6 @@ class Trainer:
         if (criteria=='min' and now<before) or (criteria=='max' and now>before): 
             self.best_metrics[mode][metric] = now
             self.best_states[mode][metric] = self.get_model_state()
-            print(' saving best model ... ')
         
     def update_metrics(self,output,target,run,epoch,batch,mode):
         """Update accuracy metrics 
@@ -215,14 +214,14 @@ class Trainer:
         self.fig,self.ax = plt.subplots(1,len(self.metrics)+1)
         #plt.pause(0.001)
     
-    def save_all(self,include_model=True):
+    def save_all(self,include_model=True,run_num="1"):
         torch.save({
                 'last_known_state':self.get_model_state(include_model=include_model),
                 'best_states':self.best_states,
                 'best_metrics':self.best_metrics,
                 'metrics':self.metrics
             },
-            self.model_name+".pth"
+            self.model_name+run_num+".pth"
         )
 
 
@@ -268,7 +267,7 @@ class Trainer:
                 if hasattr(self.optimizer,'setLR'): self.optimizer.setLR(torch.mean(self.stats['train']['loss'][r][e]))
                     
                 now = self.stats['val']['loss'][r][e].mean()
-                self.update_best_metric('val','loss','criteria',now)
+            
 
                 # setting scheduler
                 if scheduler is not None:
@@ -280,7 +279,7 @@ class Trainer:
             
             self.evaluate(r,e,runs,modes=['train','val','test'])
 
-            self.save_all()
+            self.save_all(r=str(r+1))
 
              
         print('\n\n')
