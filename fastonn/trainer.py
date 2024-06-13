@@ -7,6 +7,23 @@ from copy import deepcopy
 from .utils import *
 import h5py
 
+class EarlyStopper:
+    def init(self, patience=1, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.min_validation_loss = float('inf')
+
+    def early_stop(self, validation_loss):
+        if validation_loss < self.min_validation_loss:
+            self.min_validation_loss = validation_loss
+            self.counter = 0
+        elif validation_loss > (self.min_validation_loss + self.min_delta):
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        return False
+
 # Helper class to train, validate and evaluate torch models
 class Trainer:
     # Constructor function
@@ -220,6 +237,9 @@ class Trainer:
         runs = range(num_runs)
         if self.verbose>0: runs = tqdm(runs,desc='Run')
         for r in runs:
+
+            # adding early stopping
+            early_stopper = EarlyStopper(patience=5, min_delta=0)
             
             # adding lr_decay
             if self.lr_decay:
@@ -249,6 +269,9 @@ class Trainer:
                 now = self.stats['val']['loss'][r][e].mean()
                 self.update_best_matric('val','loss','criteria',now)
 
+                if early_stopper.early_stop(now): 
+                    break
+    
             
             self.evaluate(r,e,runs,modes=['train','val','test'])
 
@@ -259,6 +282,7 @@ class Trainer:
 
 
     def fit(self,r,e):
+        
         batches = self.dl['train'] #tqdm(self.dl['train'],desc='Train',leave=False)
         # Fit all training data
         for b_i,b in enumerate(batches):
