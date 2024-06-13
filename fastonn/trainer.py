@@ -7,6 +7,7 @@ from copy import deepcopy
 from .utils import *
 import h5py
 
+# adding a class to make early stop
 class EarlyStopper:
     def __init__(self, patience=1, min_delta=0):
         self.patience = patience
@@ -247,7 +248,7 @@ class Trainer:
             
             # adding lr_decay
             if self.lr_decay:
-                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=5, verbose=True) 
+                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=5) 
             else:
                 scheduler = None
             
@@ -262,16 +263,16 @@ class Trainer:
                 self.e = e
                 self.fit(r,e) # training
                 self.evaluate(r,e,pbar=epochs,modes=['train','val'])
-
-                # setting scheduler
-                if scheduler is not None:
-                    scheduler.step()
                 
                     
                 if hasattr(self.optimizer,'setLR'): self.optimizer.setLR(torch.mean(self.stats['train']['loss'][r][e]))
                     
                 now = self.stats['val']['loss'][r][e].mean()
                 self.update_best_matric('val','loss','criteria',now)
+
+                # setting scheduler
+                if scheduler is not None:
+                    scheduler.step(now)
 
                 if early_stopper.early_stop(now): 
                     break
