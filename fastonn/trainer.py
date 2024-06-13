@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 import random, string,time
 from copy import deepcopy
 from .utils import *
@@ -10,7 +10,7 @@ import h5py
 # Helper class to train, validate and evaluate torch models
 class Trainer:
     # Constructor function
-    def __init__(self,model,train_dl,val_dl,test_dl,loss,optim,lr,metrics,device,reset_fn=[],model_name='model',verbose=2):
+    def __init__(self,model,train_dl,val_dl,test_dl,loss,optim,lr,metrics,device,reset_fn=[],model_name='model',verbose=2,lr_decay=True): # added lr_decay=True in order to change through the training in order to make the model train better
         """Initialize the trainer instance
         - **model** -- progress bar object to update  
         - **train_dl** -- training dataloader     
@@ -59,6 +59,8 @@ class Trainer:
         self.best_states = {'train':{},'val':{},'test':{}}
         
         self.init_best_state()
+
+        self.lr_decay = lr_decay # inilizing lr_decay
     
     def init_stats(self,num_epochs,num_runs):
         """Initialize containers for storing statistics and models
@@ -101,6 +103,7 @@ class Trainer:
         if (criteria=='min' and now<before) or (criteria=='max' and now>before): 
             self.best_metrics[mode][metric] = now
             self.best_states[mode][metric] = self.get_model_state()
+            print(' saving best model ... ')
         
     def update_metrics(self,output,target,run,epoch,batch,mode):
         """Update accuracy metrics 
@@ -217,6 +220,13 @@ class Trainer:
         runs = range(num_runs)
         if self.verbose>0: runs = tqdm(runs,desc='Run')
         for r in runs:
+            
+            # adding lr_decay
+            if self.lr_decay:
+                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True) 
+            else:
+                scheduler = None
+            
             self.r = r
             self.model.apply(self.reset_fn)
             self.model.to(self.device)
@@ -228,10 +238,21 @@ class Trainer:
                 self.e = e
                 self.fit(r,e) # training
                 self.evaluate(r,e,pbar=epochs,modes=['train','val'])
-                if hasattr(self.optimizer,'setLR'): self.optimizer.setLR(torch.mean(self.stats['train']['loss'][r][e]))
+
+                # setting scheduler
+                if scheduler is not None:
+                    scheduler.step()
                 
+                    
+                if hasattr(self.optimizer,'setLR'): self.optimizer.setLR(torch.mean(self.stats['train']['loss'][r][e]))
+                    
+                now = self.stats['val']['loss'][r][e].mean()
+                self.update_best_matric('val','loss','criteria',now)
+
+            
             self.evaluate(r,e,runs,modes=['train','val','test'])
 
+            self.save_all()
 
              
         print('\n\n')
