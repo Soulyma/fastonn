@@ -231,6 +231,7 @@ class Trainer:
         - **num_runs** -- number of randomly initialized runs. Default: 1  
         """
 
+        
         # Initialize Statistics
         self.model.to(self.device) # just in case
         self.init_stats(num_epochs,num_runs)
@@ -238,12 +239,15 @@ class Trainer:
         if self.verbose>0: runs = tqdm(runs,desc='Run')
         for r in runs:
 
+            #optimizer in each run 
+            self.optimizer,_ = get_optimizer(self.model,self.optim,lr=self.lr)
+            
             # adding early stopping
             early_stopper = EarlyStopper(patience=5, min_delta=0)
             
             # adding lr_decay
             if self.lr_decay:
-                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True) 
+                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=5, verbose=True) 
             else:
                 scheduler = None
             
