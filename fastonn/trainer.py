@@ -279,7 +279,7 @@ class Trainer:
             
             self.evaluate(r,e,runs,modes=['train','val','test'])
 
-            self.save_all(r=str(r+1))
+            self.save_all(run_num=str(r+1))
 
              
         print('\n\n')
