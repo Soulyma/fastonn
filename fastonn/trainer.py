@@ -268,7 +268,7 @@ class Trainer:
                 if hasattr(self.optimizer,'setLR'): self.optimizer.setLR(torch.mean(self.stats['train']['loss'][r][e]))
                     
                 now = self.stats['val']['loss'][r][e].mean()
-                self.update_best_matric('val','loss','criteria',now)
+                self.update_best_metric('val','loss','criteria',now)
 
                 # setting scheduler
                 if scheduler is not None:
